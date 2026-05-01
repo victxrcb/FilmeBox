@@ -1,14 +1,21 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import MovieCard from '../components/MovieCard'
 import MovieDetailModal from '../components/MovieDetailModal'
 import AddMovieModal from '../components/AddMovieModal'
 import IMDbSearchView from '../components/IMDbSearchView'
+import PopularMoviesView from '../components/PopularMoviesView'
 
 const NAV_TABS = [
   { id: 'all',       label: 'Todos',      icon: '🎬' },
   { id: 'watchlist', label: 'Watchlist',  icon: '🕐' },
   { id: 'assistido', label: 'Assistidos', icon: '✓'  },
   { id: 'fav',       label: 'Favoritos',  icon: '⭐' },
+  { id: 'popular',   label: 'Populares',  icon: '🔥' },
+]
+
+const EXAMPLE_SEARCHES = [
+  'Avengers', 'Batman', 'Spider-Man', 'Star Wars',
+  'Marvel', 'Transformers', 'Deadpool', 'Disney',
 ]
 
 function Avatar({ profile, username, onClick }) {
@@ -46,6 +53,8 @@ export default function Home({
   const [tab, setTab]                     = useState('all')
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [showAdd, setShowAdd]             = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const searchRef = useRef(null)
 
   const counts = useMemo(() => ({
     all:       movies.length,
@@ -79,6 +88,16 @@ export default function Home({
     setSelectedMovie((prev) => prev ? { ...prev, ...data } : null)
   }
 
+  function handleAddFirstFilm() {
+    setShowSuggestions(true)
+    setTimeout(() => searchRef.current?.focus(), 50)
+  }
+
+  function handleSearchChange(e) {
+    setSearch(e.target.value)
+    if (e.target.value) setShowSuggestions(false)
+  }
+
   const emptyTitle = {
     all:       'Sua biblioteca está vazia',
     watchlist: 'Nenhum filme na watchlist',
@@ -93,6 +112,9 @@ export default function Home({
     fav:       'Clique na estrela em qualquer filme',
   }
 
+  const showSuggestionsView = !search && showSuggestions && movies.length === 0
+  const showPopularView     = !search && tab === 'popular'
+
   return (
     <div className="min-h-screen bg-zinc-950">
       {/* ── Header ── */}
@@ -100,7 +122,7 @@ export default function Home({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
           {/* Logo */}
           <button
-            onClick={() => { setSearch(''); setTab('all') }}
+            onClick={() => { setSearch(''); setTab('all'); setShowSuggestions(false) }}
             className="flex items-center gap-2 shrink-0 hover:opacity-80 transition-opacity"
             title="Voltar para início"
           >
@@ -122,10 +144,11 @@ export default function Home({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
               </svg>
               <input
+                ref={searchRef}
                 type="text"
                 placeholder="Buscar no IMDb..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={handleSearchChange}
                 className="w-full bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-600 rounded-lg pl-9 pr-4 py-2 text-sm outline-none focus:border-red-600/60 focus:ring-1 focus:ring-red-600/20 transition-all"
               />
             </div>
@@ -149,7 +172,7 @@ export default function Home({
       <div className="border-b border-zinc-900 bg-black/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center gap-1 overflow-x-auto">
           {NAV_TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)}
+            <button key={t.id} onClick={() => { setTab(t.id); setShowSuggestions(false) }}
               className={`relative flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                 tab === t.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
               }`}>
@@ -189,6 +212,35 @@ export default function Home({
             addMovie={addMovie}
             updateMovie={updateMovie}
           />
+        ) : showPopularView ? (
+          <PopularMoviesView
+            movies={movies}
+            addMovie={addMovie}
+            updateMovie={updateMovie}
+          />
+        ) : showSuggestionsView ? (
+          /* Sugestões de busca */
+          <div className="animate-fade-in-up">
+            <div className="mb-6">
+              <h2 className="text-white font-semibold text-lg mb-1">Pesquise um filme</h2>
+              <p className="text-zinc-500 text-sm">Use a barra de pesquisa acima ou experimente uma dessas sugestões</p>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-8">
+              {EXAMPLE_SEARCHES.map((term) => (
+                <button
+                  key={term}
+                  onClick={() => setSearch(term)}
+                  className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-red-600/50 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-xl text-sm transition-all duration-200"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 shrink-0">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                  </svg>
+                  {term}
+                </button>
+              ))}
+            </div>
+            <p className="text-zinc-700 text-xs">Também é possível adicionar um filme manualmente pelo botão <span className="text-zinc-500">+ Adicionar</span></p>
+          </div>
         ) : (
           <>
             {tab === 'watchlist' && counts.watchlist > 0 && (
@@ -215,7 +267,7 @@ export default function Home({
                 <h3 className="text-white font-semibold text-lg mb-2">{emptyTitle[tab]}</h3>
                 <p className="text-zinc-600 text-sm mb-5 max-w-xs">{emptyHint[tab]}</p>
                 {tab === 'all' && (
-                  <button onClick={() => setShowAdd(true)} className="btn-primary">Adicionar primeiro filme</button>
+                  <button onClick={handleAddFirstFilm} className="btn-primary">Adicionar primeiro filme</button>
                 )}
               </div>
             )}
