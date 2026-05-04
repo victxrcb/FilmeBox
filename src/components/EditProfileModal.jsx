@@ -55,13 +55,6 @@ export default function EditProfileModal({ profile, username, movies, onSave, on
 
   return (
     <>
-    {cropSrc && (
-      <BannerCropModal
-        src={cropSrc}
-        onConfirm={(cropped) => { setBanner(cropped); setCropSrc(null) }}
-        onClose={() => setCropSrc(null)}
-      />
-    )}
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content max-h-[90vh] overflow-y-auto animate-slide-up" onClick={(e) => e.stopPropagation()}>
 
@@ -255,6 +248,13 @@ export default function EditProfileModal({ profile, username, movies, onSave, on
         </form>
       </div>
     </div>
+    {cropSrc && (
+      <BannerCropModal
+        src={cropSrc}
+        onConfirm={(cropped) => { setBanner(cropped); setCropSrc(null) }}
+        onClose={() => setCropSrc(null)}
+      />
+    )}
     </>
   )
 }
