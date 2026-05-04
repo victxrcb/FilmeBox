@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import BannerCropModal from './BannerCropModal'
 
 export default function EditProfileModal({ profile, username, movies, onSave, onClose }) {
   const [displayName, setDisplayName] = useState(profile.displayName || username)
@@ -6,6 +7,7 @@ export default function EditProfileModal({ profile, username, movies, onSave, on
   const [photoMode, setPhotoMode]     = useState('url')
   const [urlInput, setUrlInput]       = useState(profile.photo?.startsWith('data:') ? '' : (profile.photo || ''))
   const [banner, setBanner]           = useState(profile.banner || '')
+  const [cropSrc, setCropSrc]         = useState(null)
   const [selected, setSelected]       = useState(profile.topFavorites || [])
   const [search, setSearch]           = useState('')
   const fileRef   = useRef(null)
@@ -15,8 +17,9 @@ export default function EditProfileModal({ profile, username, movies, onSave, on
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = (ev) => setBanner(ev.target.result)
+    reader.onload = (ev) => setCropSrc(ev.target.result)
     reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const filtered = movies.filter((m) =>
@@ -51,6 +54,14 @@ export default function EditProfileModal({ profile, username, movies, onSave, on
   }
 
   return (
+    <>
+    {cropSrc && (
+      <BannerCropModal
+        src={cropSrc}
+        onConfirm={(cropped) => { setBanner(cropped); setCropSrc(null) }}
+        onClose={() => setCropSrc(null)}
+      />
+    )}
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content max-h-[90vh] overflow-y-auto animate-slide-up" onClick={(e) => e.stopPropagation()}>
 
@@ -244,5 +255,6 @@ export default function EditProfileModal({ profile, username, movies, onSave, on
         </form>
       </div>
     </div>
+    </>
   )
 }
