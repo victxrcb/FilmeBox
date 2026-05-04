@@ -51,6 +51,7 @@ export default function Home({
 }) {
   const [search, setSearch]               = useState('')
   const [tab, setTab]                     = useState('all')
+  const [popularKey, setPopularKey]       = useState(0)
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [showAdd, setShowAdd]             = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -172,7 +173,7 @@ export default function Home({
       <div className="border-b border-zinc-900 bg-black/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center gap-1 overflow-x-auto">
           {NAV_TABS.map((t) => (
-            <button key={t.id} onClick={() => { setTab(t.id); setShowSuggestions(false) }}
+            <button key={t.id} onClick={() => { if (t.id === 'popular') setPopularKey((k) => k + 1); setTab(t.id); setShowSuggestions(false) }}
               className={`relative flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                 tab === t.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
               }`}>
@@ -214,6 +215,7 @@ export default function Home({
           />
         ) : showPopularView ? (
           <PopularMoviesView
+            key={popularKey}
             movies={movies}
             addMovie={addMovie}
             updateMovie={updateMovie}
