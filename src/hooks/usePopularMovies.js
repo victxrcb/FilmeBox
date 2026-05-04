@@ -13,10 +13,12 @@ export function usePopularMovies() {
     const controller = new AbortController()
     setLoading(true)
 
+    const page = Math.floor(Math.random() * 5) + 1
+
     async function load() {
       try {
         const res = await fetch(
-          `https://api.themoviedb.org/3/discover/movie?api_key=${KEY}&language=pt-BR&sort_by=popularity.desc&primary_release_date.gte=2024-01-01&include_adult=false&vote_count.gte=50`,
+          `https://api.themoviedb.org/3/discover/movie?api_key=${KEY}&language=pt-BR&sort_by=popularity.desc&primary_release_date.gte=2024-01-01&include_adult=false&vote_count.gte=50&page=${page}`,
           { signal: controller.signal }
         )
         if (res.status === 401) { setError('invalid_key'); return }
