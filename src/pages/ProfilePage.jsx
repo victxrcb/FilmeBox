@@ -122,9 +122,13 @@ export default function ProfilePage({ user, profile, movies, onSaveProfile, onBa
 
         {/* Top 3 */}
         <div className="animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-          <div className="flex items-center gap-2 mb-4">
-            <StarIcon />
-            <h2 className="text-white font-bold text-lg">Top 3 Favoritos</h2>
+          <div className="flex items-center gap-2 mb-5">
+            <div className="flex items-center gap-1">
+              <StarIcon />
+              <StarIcon />
+              <StarIcon />
+            </div>
+            <h2 className="text-white font-bold text-lg tracking-wide">Top 3 Favoritos</h2>
           </div>
 
           {topMovies.length === 0 ? (
@@ -137,42 +141,52 @@ export default function ProfilePage({ user, profile, movies, onSaveProfile, onBa
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {topMovies.map((movie, i) => (
-                <div key={movie.id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-red-600/40 transition-all duration-300 group">
-                  <div className="aspect-video w-full relative overflow-hidden bg-zinc-800">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+              {topMovies.map((movie, i) => {
+                const ranks = [
+                  { border: 'border-amber-400/60', shadow: 'hover:shadow-amber-500/25', badge: 'from-amber-400 to-yellow-600', label: 'text-amber-300', ring: 'ring-amber-400/30' },
+                  { border: 'border-slate-400/50', shadow: 'hover:shadow-slate-400/20', badge: 'from-slate-300 to-slate-500', label: 'text-slate-300', ring: 'ring-slate-400/30' },
+                  { border: 'border-orange-700/50', shadow: 'hover:shadow-orange-700/20', badge: 'from-orange-500 to-orange-800', label: 'text-orange-400', ring: 'ring-orange-700/30' },
+                ]
+                const rank = ranks[i]
+                return (
+                  <div key={movie.id}
+                    className={`relative rounded-xl sm:rounded-2xl overflow-hidden border ${rank.border} hover:shadow-xl ${rank.shadow} transition-all duration-500 group aspect-[2/3] bg-zinc-900 ring-1 ${rank.ring}`}>
+
+                    {/* Poster */}
                     {movie.imagem ? (
                       <img src={movie.imagem} alt={movie.nome}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         onError={(e) => e.target.style.display = 'none'}/>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-700">
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-10 h-10 opacity-20">
+                      <div className="absolute inset-0 flex items-center justify-center bg-zinc-800">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-10 h-10 text-zinc-700 opacity-30">
                           <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2z"/>
                         </svg>
                       </div>
                     )}
-                    <div className="absolute top-3 left-3 w-7 h-7 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-900/60">
-                      <span className="text-white text-xs font-black">#{i + 1}</span>
+
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+
+                    {/* Info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3">
+                      <h3 className="text-white font-bold text-xs sm:text-sm leading-tight line-clamp-2 drop-shadow-lg">{movie.nome}</h3>
+                      {movie.genero && (
+                        <p className={`${rank.label} text-[10px] sm:text-xs mt-0.5 font-medium truncate`}>{movie.genero}</p>
+                      )}
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-white font-semibold leading-tight line-clamp-1">{movie.nome}</h3>
-                    {movie.genero && <p className="text-zinc-500 text-xs mt-1">{movie.genero}</p>}
-                    {movie.sinopse && <p className="text-zinc-600 text-xs mt-2 line-clamp-2 leading-relaxed">{movie.sinopse}</p>}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
 
               {Array.from({ length: 3 - topMovies.length }).map((_, i) => (
                 <button key={`empty-${i}`} onClick={() => setShowEdit(true)}
-                  className="bg-zinc-900/50 border-2 border-dashed border-zinc-800 hover:border-red-600/40 rounded-2xl min-h-40 flex flex-col items-center justify-center gap-2 text-zinc-700 hover:text-zinc-500 transition-all group">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-7 h-7 group-hover:scale-110 transition-transform">
+                  className="aspect-[2/3] bg-zinc-900/50 border-2 border-dashed border-zinc-800 hover:border-red-600/40 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-700 hover:text-zinc-500 transition-all group">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 group-hover:scale-110 transition-transform">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                   </svg>
-                  <span className="text-xs">Adicionar favorito</span>
+                  <span className="text-[10px] sm:text-xs">Adicionar</span>
                 </button>
               ))}
             </div>
