@@ -41,12 +41,12 @@ const STATUS_OPTS = [
   { value: 'assistido', label: 'Assistido', cls: 'bg-emerald-600/20 text-emerald-400 border-emerald-600/30' },
 ]
 
-export default function MovieDetailModal({ movie, onClose, onToggleFavorite, onUpdate, onDelete }) {
-  const [editing, setEditing]           = useState(false)
+export default function MovieDetailModal({ movie, onClose, onToggleFavorite, onUpdate, onDelete, onOpenChat }) {
+  const [editing, setEditing]             = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [starAnim, setStarAnim]         = useState(false)
-  const [obs, setObs]                   = useState(movie?.observacao || '')
-  const [obsSaved, setObsSaved]         = useState(true)
+  const [starAnim, setStarAnim]           = useState(false)
+  const [obs, setObs]                     = useState(movie?.observacao || '')
+  const [obsSaved, setObsSaved]           = useState(true)
 
   if (!movie) return null
 
@@ -238,6 +238,14 @@ export default function MovieDetailModal({ movie, onClose, onToggleFavorite, onU
             {confirmDelete ? 'Confirmar exclusão' : 'Excluir'}
           </button>
           <div className="flex gap-2">
+            {onOpenChat && (
+              <button onClick={() => { onOpenChat(movie); onClose() }} className="btn-secondary text-sm py-2 px-4 flex items-center gap-1.5" title="Compartilhar com amigo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/>
+                </svg>
+                Compartilhar
+              </button>
+            )}
             <button onClick={onClose} className="btn-secondary text-sm py-2 px-4">Fechar</button>
             {!isFromAPI && (
               <button onClick={() => setEditing(true)} className="btn-primary text-sm py-2 px-4">Editar</button>

@@ -7,7 +7,7 @@ const StarIcon = () => (
   </svg>
 )
 
-export default function ProfilePage({ user, profile, movies, onSaveProfile, onBack }) {
+export default function ProfilePage({ user, profile, movies, onSaveProfile, onUpdateEmail, onVerifyEmailOtp, onResendEmailOtp, onBack }) {
   const [showEdit, setShowEdit] = useState(false)
 
   const displayName = profile.displayName || user.username
@@ -17,7 +17,7 @@ export default function ProfilePage({ user, profile, movies, onSaveProfile, onBa
 
   function handleSave(data) {
     onSaveProfile(data)
-    setShowEdit(false)
+    // O modal chama onClose() diretamente quando terminar (inclusive após OTP)
   }
 
   return (
@@ -94,10 +94,25 @@ export default function ProfilePage({ user, profile, movies, onSaveProfile, onBa
               </button>
             </div>
 
-            {/* Name + handle */}
+            {/* Name + handle + email */}
             <div className="mt-3">
               <h1 className="text-2xl font-bold text-white leading-tight">{displayName}</h1>
               <p className="text-zinc-500 text-sm mt-0.5">@{user.username}</p>
+              <div className="flex items-center gap-2 mt-1.5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-3.5 h-3.5 text-zinc-600 shrink-0">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                </svg>
+                {profile.email ? (
+                  <span className="text-zinc-400 text-sm">{profile.email}</span>
+                ) : (
+                  <button
+                    onClick={() => setShowEdit(true)}
+                    className="text-zinc-600 hover:text-red-400 text-sm transition-colors underline-offset-2 hover:underline"
+                  >
+                    Adicionar e-mail
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Stats */}
@@ -200,6 +215,9 @@ export default function ProfilePage({ user, profile, movies, onSaveProfile, onBa
           username={user.username}
           movies={movies}
           onSave={handleSave}
+          onUpdateEmail={onUpdateEmail}
+          onVerifyEmailOtp={onVerifyEmailOtp}
+          onResendEmailOtp={onResendEmailOtp}
           onClose={() => setShowEdit(false)}
         />
       )}

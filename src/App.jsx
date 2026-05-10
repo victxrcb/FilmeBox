@@ -2,14 +2,24 @@ import { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useMovies } from './hooks/useMovies'
 import { useProfile } from './hooks/useProfile'
+import { useFriends } from './hooks/useFriends'
+import { useShares } from './hooks/useShares'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import ProfilePage from './pages/ProfilePage'
+import FriendsPage from './pages/FriendsPage'
 
 function AuthenticatedApp({ user, onLogout }) {
   const [page, setPage] = useState('home')
   const { movies, addMovie, updateMovie, deleteMovie, toggleFavorite } = useMovies(user.id)
-  const { profile, saveProfile } = useProfile(user.id)
+  const { profile, saveProfile, updateEmail, verifyEmailOtp, resendEmailOtp } = useProfile(user.id)
+  const {
+    friends, pendingReceived, pendingSent, loading: friendsLoading,
+    getFriendshipWith, sendRequest, acceptRequest, rejectRequest, removeFriend,
+    searchUsers,
+  } = useFriends(user.id)
+
+  const { allShares, unreadCount, sendShare, getConversation, getUnreadFromFriend, markSeenFromFriend } = useShares(user.id)
 
   if (page === 'profile') {
     return (
@@ -18,6 +28,27 @@ function AuthenticatedApp({ user, onLogout }) {
         profile={profile}
         movies={movies}
         onSaveProfile={saveProfile}
+        onUpdateEmail={updateEmail}
+        onVerifyEmailOtp={verifyEmailOtp}
+        onResendEmailOtp={resendEmailOtp}
+        onBack={() => setPage('home')}
+      />
+    )
+  }
+
+  if (page === 'friends') {
+    return (
+      <FriendsPage
+        friends={friends}
+        pendingReceived={pendingReceived}
+        pendingSent={pendingSent}
+        loading={friendsLoading}
+        getFriendshipWith={getFriendshipWith}
+        sendRequest={sendRequest}
+        acceptRequest={acceptRequest}
+        rejectRequest={rejectRequest}
+        removeFriend={removeFriend}
+        searchUsers={searchUsers}
         onBack={() => setPage('home')}
       />
     )
@@ -34,6 +65,15 @@ function AuthenticatedApp({ user, onLogout }) {
       toggleFavorite={toggleFavorite}
       onLogout={onLogout}
       onOpenProfile={() => setPage('profile')}
+      onOpenFriends={() => setPage('friends')}
+      pendingFriendsCount={pendingReceived.length}
+      friends={friends}
+      allShares={allShares}
+      onShareMovie={sendShare}
+      unreadSharesCount={unreadCount}
+      onMarkSeenFromFriend={markSeenFromFriend}
+      getConversation={getConversation}
+      getUnreadFromFriend={getUnreadFromFriend}
     />
   )
 }
