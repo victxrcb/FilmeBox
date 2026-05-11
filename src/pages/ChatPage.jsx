@@ -24,6 +24,60 @@ function SeenIndicator({ seen }) {
   )
 }
 
+function MovieMessageCard({ movie, message, isMe, onAddMovie }) {
+  const [added, setAdded] = useState(false)
+
+  function handleAdd() {
+    onAddMovie({ nome: movie.nome, imagem: movie.imagem, genero: movie.genero, sinopse: movie.sinopse, tmdbID: movie.tmdbID })
+    setAdded(true)
+  }
+
+  return (
+    <div className={`w-52 rounded-2xl overflow-hidden border ${
+      isMe ? 'bg-red-600/10 border-red-600/20 rounded-tr-sm' : 'bg-zinc-900 border-zinc-800 rounded-tl-sm'
+    }`}>
+      {/* Capa do filme */}
+      <div className="w-full bg-zinc-800 overflow-hidden" style={{ aspectRatio: '2/3' }}>
+        {movie.imagem ? (
+          <img src={movie.imagem} alt={movie.nome} className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'}/>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-zinc-700">
+              <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
+            </svg>
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="px-3 pt-2.5 pb-1">
+        <p className="text-white text-sm font-semibold leading-snug line-clamp-2">{movie.nome}</p>
+        {movie.genero && <p className="text-zinc-500 text-xs mt-0.5">{movie.genero}</p>}
+      </div>
+
+      {message && (
+        <p className="px-3 pb-1.5 text-zinc-400 text-xs italic leading-relaxed">"{message}"</p>
+      )}
+
+      {!isMe && (
+        <div className="px-3 pb-3 pt-1">
+          <button
+            onClick={handleAdd}
+            disabled={added}
+            className={`w-full text-xs py-1.5 rounded-lg font-semibold transition-all duration-500 ${
+              added
+                ? 'bg-green-600/20 text-green-400 border border-green-500/40 scale-95'
+                : 'btn-primary'
+            }`}
+          >
+            {added ? '✓ Adicionado' : '+ Adicionar à biblioteca'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MoviePicker({ movies, onSelect, onClose }) {
   const [search, setSearch] = useState('')
   const filtered = movies.filter((m) =>
@@ -312,44 +366,12 @@ export default function ChatPage({
                       <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                         <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                           {movie ? (
-                            <div className={`max-w-[280px] rounded-2xl overflow-hidden border ${
-                              isMe
-                                ? 'bg-red-600/10 border-red-600/20 rounded-tr-sm'
-                                : 'bg-zinc-900 border-zinc-800 rounded-tl-sm'
-                            }`}>
-                              <div className="flex gap-2.5 p-3">
-                                <div className="w-10 shrink-0 bg-zinc-800 rounded-lg overflow-hidden" style={{ aspectRatio: '2/3' }}>
-                                  {movie.imagem ? (
-                                    <img src={movie.imagem} alt={movie.nome} className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'}/>
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-zinc-700 opacity-50">
-                                        <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
-                                      </svg>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-white text-xs font-semibold leading-snug line-clamp-2">{movie.nome}</p>
-                                  {movie.genero && <p className="text-zinc-500 text-[11px] mt-0.5">{movie.genero}</p>}
-                                </div>
-                              </div>
-                              {msg.message && (
-                                <p className="px-3 pb-2.5 -mt-1 text-zinc-400 text-xs italic leading-relaxed">
-                                  "{msg.message}"
-                                </p>
-                              )}
-                              {!isMe && (
-                                <div className="px-3 pb-3 -mt-0.5">
-                                  <button
-                                    onClick={() => onAddMovie({ nome: movie.nome, imagem: movie.imagem, genero: movie.genero, sinopse: movie.sinopse, tmdbID: movie.tmdbID })}
-                                    className="btn-primary text-[11px] py-1 px-2.5 w-full"
-                                  >
-                                    + Adicionar à biblioteca
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                            <MovieMessageCard
+                              movie={movie}
+                              message={msg.message}
+                              isMe={isMe}
+                              onAddMovie={onAddMovie}
+                            />
                           ) : (
                             <div className={`max-w-[280px] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
                               isMe
