@@ -18,7 +18,7 @@ function FriendAvatar({ friend, size = 9 }) {
 
 function SeenIndicator({ seen }) {
   return (
-    <span className={`text-[10px] select-none ${seen ? 'text-blue-400' : 'text-zinc-600'}`}>
+    <span className={`text-[10px] select-none ${seen ? 'text-red-400' : 'text-zinc-600'}`}>
       {seen ? '✓✓ visto' : '✓'}
     </span>
   )
@@ -151,40 +151,23 @@ export default function ChatPage({
       <header className="bg-black/90 backdrop-blur-md border-b border-zinc-900 shrink-0">
         <div className="px-2 h-14 flex items-center gap-1">
           <button
-            onClick={selectedFriend && !showSidebar ? () => setShowSidebar(true) : onBack}
+            onClick={onBack}
             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+            title="Voltar"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
             </svg>
           </button>
 
-          {/* Mobile: mostra info do amigo quando conversa está aberta */}
-          {selectedFriend && !showSidebar ? (
-            <div className="flex sm:hidden items-center gap-2.5 flex-1">
-              <div className="relative shrink-0">
-                <FriendAvatar friend={selectedFriend} size={8}/>
-                <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 border-black ${friendIsOnline ? 'bg-green-500' : 'bg-zinc-600'}`}/>
-              </div>
-              <div className="min-w-0">
-                <p className="text-white font-semibold text-sm truncate">
-                  {selectedFriend.displayName || selectedFriend.username}
-                </p>
-                <p className={`text-[11px] ${friendIsOnline ? 'text-green-500' : 'text-zinc-500'}`}>
-                  {friendIsOnline ? 'online' : 'offline'}
-                </p>
-              </div>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-red-600 rounded-md flex items-center justify-center shadow-md shadow-red-900/60">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+                <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
+              </svg>
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-red-600 rounded-md flex items-center justify-center shadow-md shadow-red-900/60">
-                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
-                  <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
-                </svg>
-              </div>
-              <h1 className="text-white font-bold text-base">Mensagens</h1>
-            </div>
-          )}
+            <h1 className="text-white font-bold text-base">Mensagens</h1>
+          </div>
         </div>
       </header>
 
@@ -278,8 +261,8 @@ export default function ChatPage({
             </div>
           ) : (
             <>
-              {/* Conversation header — desktop only */}
-              <div className="hidden sm:flex px-4 py-3 border-b border-zinc-800 shrink-0 items-center gap-2.5">
+              {/* Conversation header */}
+              <div className="flex px-4 py-3 border-b border-zinc-800 shrink-0 items-center gap-2.5">
                 <div className="relative shrink-0">
                   <FriendAvatar friend={selectedFriend} size={8}/>
                   <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 border-zinc-950 ${friendIsOnline ? 'bg-green-500' : 'bg-zinc-600'}`}/>
