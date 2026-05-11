@@ -15,6 +15,15 @@ function FriendAvatar({ friend, size = 9 }) {
   )
 }
 
+
+function SeenIndicator({ seen }) {
+  return (
+    <span className={`text-[10px] select-none ${seen ? 'text-blue-400' : 'text-zinc-600'}`}>
+      {seen ? '✓✓ visto' : '✓'}
+    </span>
+  )
+}
+
 function MoviePicker({ movies, onSelect, onClose }) {
   const [search, setSearch] = useState('')
   const filtered = movies.filter((m) =>
@@ -92,7 +101,7 @@ export default function ChatPage({
   onBack,
   initialMovie = null,
   initialFriend = null,
-  connected = false,
+  onlineUsers = new Set(),
 }) {
   const [selectedFriend, setSelectedFriend] = useState(initialFriend)
   const [pendingMovie, setPendingMovie]     = useState(initialMovie)
@@ -134,35 +143,48 @@ export default function ChatPage({
     setShowSidebar(false)
   }
 
+  const friendIsOnline = selectedFriend ? onlineUsers.has(selectedFriend.userId) : false
+
   return (
     <div className="h-screen bg-zinc-950 flex flex-col overflow-hidden">
       {/* ── Header ── */}
       <header className="bg-black/90 backdrop-blur-md border-b border-zinc-900 shrink-0">
         <div className="px-2 h-14 flex items-center gap-1">
           <button
-            onClick={onBack}
+            onClick={selectedFriend && !showSidebar ? () => setShowSidebar(true) : onBack}
             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
-            title="Voltar"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
             </svg>
           </button>
 
-          <div className="flex items-center gap-2 flex-1">
-            <div className="w-7 h-7 bg-red-600 rounded-md flex items-center justify-center shadow-md shadow-red-900/60">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
-                <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
-              </svg>
+          {/* Mobile: mostra info do amigo quando conversa está aberta */}
+          {selectedFriend && !showSidebar ? (
+            <div className="flex sm:hidden items-center gap-2.5 flex-1">
+              <div className="relative shrink-0">
+                <FriendAvatar friend={selectedFriend} size={8}/>
+                <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 border-black ${friendIsOnline ? 'bg-green-500' : 'bg-zinc-600'}`}/>
+              </div>
+              <div className="min-w-0">
+                <p className="text-white font-semibold text-sm truncate">
+                  {selectedFriend.displayName || selectedFriend.username}
+                </p>
+                <p className={`text-[11px] ${friendIsOnline ? 'text-green-500' : 'text-zinc-500'}`}>
+                  {friendIsOnline ? 'online' : 'offline'}
+                </p>
+              </div>
             </div>
-            <h1 className="text-white font-bold text-base">Mensagens</h1>
-            <div className="ml-auto flex items-center gap-1.5 pr-2">
-              <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-zinc-600'}`}/>
-              <span className={`text-[10px] ${connected ? 'text-green-500/80' : 'text-zinc-600'}`}>
-                {connected ? 'ao vivo' : 'conectando…'}
-              </span>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-red-600 rounded-md flex items-center justify-center shadow-md shadow-red-900/60">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+                  <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
+                </svg>
+              </div>
+              <h1 className="text-white font-bold text-base">Mensagens</h1>
             </div>
-          </div>
+          )}
         </div>
       </header>
 
@@ -191,6 +213,7 @@ export default function ChatPage({
                 const unread     = getUnreadFromFriend(friend.userId)
                 const lastMsg    = allShares.findLast((s) => s.sender_id === friend.userId || s.receiver_id === friend.userId)
                 const isSelected = selectedFriend?.userId === friend.userId
+                const isOnline   = onlineUsers.has(friend.userId)
 
                 return (
                   <button
@@ -200,7 +223,12 @@ export default function ChatPage({
                       isSelected ? 'bg-zinc-800/80' : 'hover:bg-zinc-900'
                     }`}
                   >
-                    <FriendAvatar friend={friend} size={10}/>
+                    {/* Avatar com bolinha de status */}
+                    <div className="relative shrink-0">
+                      <FriendAvatar friend={friend} size={10}/>
+                      <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-zinc-950 ${isOnline ? 'bg-green-500' : 'bg-zinc-600'}`}/>
+                    </div>
+
                     <div className="flex-1 min-w-0 text-left">
                       <p className={`text-sm font-medium truncate ${isSelected ? 'text-white' : 'text-zinc-300'}`}>
                         {display}
@@ -250,12 +278,20 @@ export default function ChatPage({
             </div>
           ) : (
             <>
-              {/* Conversation header - visible only on desktop (mobile uses the main header) */}
+              {/* Conversation header — desktop only */}
               <div className="hidden sm:flex px-4 py-3 border-b border-zinc-800 shrink-0 items-center gap-2.5">
-                <FriendAvatar friend={selectedFriend} size={8}/>
-                <p className="text-white font-semibold text-sm">
-                  {selectedFriend.displayName || selectedFriend.username}
-                </p>
+                <div className="relative shrink-0">
+                  <FriendAvatar friend={selectedFriend} size={8}/>
+                  <span className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 border-zinc-950 ${friendIsOnline ? 'bg-green-500' : 'bg-zinc-600'}`}/>
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-sm">
+                    {selectedFriend.displayName || selectedFriend.username}
+                  </p>
+                  <p className={`text-[11px] ${friendIsOnline ? 'text-green-500' : 'text-zinc-500'}`}>
+                    {friendIsOnline ? 'online' : 'offline'}
+                  </p>
+                </div>
               </div>
 
               {/* Messages */}
@@ -270,54 +306,57 @@ export default function ChatPage({
                     const movie = msg.movie_data
                     return (
                       <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                        {movie ? (
-                          <div className={`max-w-[280px] rounded-2xl overflow-hidden border ${
-                            isMe
-                              ? 'bg-red-600/10 border-red-600/20 rounded-tr-sm'
-                              : 'bg-zinc-900 border-zinc-800 rounded-tl-sm'
-                          }`}>
-                            <div className="flex gap-2.5 p-3">
-                              <div className="w-10 shrink-0 bg-zinc-800 rounded-lg overflow-hidden" style={{ aspectRatio: '2/3' }}>
-                                {movie.imagem ? (
-                                  <img src={movie.imagem} alt={movie.nome} className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'}/>
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-zinc-700 opacity-50">
-                                      <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
-                                    </svg>
-                                  </div>
-                                )}
+                        <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                          {movie ? (
+                            <div className={`max-w-[280px] rounded-2xl overflow-hidden border ${
+                              isMe
+                                ? 'bg-red-600/10 border-red-600/20 rounded-tr-sm'
+                                : 'bg-zinc-900 border-zinc-800 rounded-tl-sm'
+                            }`}>
+                              <div className="flex gap-2.5 p-3">
+                                <div className="w-10 shrink-0 bg-zinc-800 rounded-lg overflow-hidden" style={{ aspectRatio: '2/3' }}>
+                                  {movie.imagem ? (
+                                    <img src={movie.imagem} alt={movie.nome} className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'}/>
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-zinc-700 opacity-50">
+                                        <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
+                                      </svg>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-white text-xs font-semibold leading-snug line-clamp-2">{movie.nome}</p>
+                                  {movie.genero && <p className="text-zinc-500 text-[11px] mt-0.5">{movie.genero}</p>}
+                                </div>
                               </div>
-                              <div className="min-w-0">
-                                <p className="text-white text-xs font-semibold leading-snug line-clamp-2">{movie.nome}</p>
-                                {movie.genero && <p className="text-zinc-500 text-[11px] mt-0.5">{movie.genero}</p>}
-                              </div>
+                              {msg.message && (
+                                <p className="px-3 pb-2.5 -mt-1 text-zinc-400 text-xs italic leading-relaxed">
+                                  "{msg.message}"
+                                </p>
+                              )}
+                              {!isMe && (
+                                <div className="px-3 pb-3 -mt-0.5">
+                                  <button
+                                    onClick={() => onAddMovie({ nome: movie.nome, imagem: movie.imagem, genero: movie.genero, sinopse: movie.sinopse, tmdbID: movie.tmdbID })}
+                                    className="btn-primary text-[11px] py-1 px-2.5 w-full"
+                                  >
+                                    + Adicionar à biblioteca
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                            {msg.message && (
-                              <p className="px-3 pb-2.5 -mt-1 text-zinc-400 text-xs italic leading-relaxed">
-                                "{msg.message}"
-                              </p>
-                            )}
-                            {!isMe && (
-                              <div className="px-3 pb-3 -mt-0.5">
-                                <button
-                                  onClick={() => onAddMovie({ nome: movie.nome, imagem: movie.imagem, genero: movie.genero, sinopse: movie.sinopse, tmdbID: movie.tmdbID })}
-                                  className="btn-primary text-[11px] py-1 px-2.5 w-full"
-                                >
-                                  + Adicionar à biblioteca
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className={`max-w-[280px] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
-                            isMe
-                              ? 'bg-red-600/15 text-white rounded-tr-sm'
-                              : 'bg-zinc-800 text-zinc-200 rounded-tl-sm'
-                          }`}>
-                            {msg.message}
-                          </div>
-                        )}
+                          ) : (
+                            <div className={`max-w-[280px] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
+                              isMe
+                                ? 'bg-red-600/15 text-white rounded-tr-sm'
+                                : 'bg-zinc-800 text-zinc-200 rounded-tl-sm'
+                            }`}>
+                              {msg.message}
+                            </div>
+                          )}
+                          {isMe && <SeenIndicator seen={msg.seen}/>}
+                        </div>
                       </div>
                     )
                   })

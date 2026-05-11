@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function useShares(userId) {
-  const [allShares, setAllShares] = useState([])
-  const [connected, setConnected] = useState(false)
+  const [allShares, setAllShares]   = useState([])
+  const [onlineUsers, setOnlineUsers] = useState(new Set())
 
   const refresh = useCallback(async () => {
     if (!userId) return
@@ -30,34 +30,49 @@ export function useShares(userId) {
         prev.map((s) => (s.id === row.id ? { ...s, ...row } : s))
       )
 
-    const channel = supabase
+    // Canal para mensagens em tempo real
+    const sharesChannel = supabase
       .channel(`shares_${userId}`)
-      // Mensagens que EU recebo
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'movie_shares',
         filter: `receiver_id=eq.${userId}`,
       }, ({ new: row }) => addRow(row))
-      // Mensagens que EU envio (feedback em tempo real para o remetente)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'movie_shares',
         filter: `sender_id=eq.${userId}`,
       }, ({ new: row }) => addRow(row))
-      // Alguém leu minhas mensagens (atualiza badge "visto")
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'movie_shares',
         filter: `sender_id=eq.${userId}`,
       }, ({ new: row }) => updateRow(row))
-      .subscribe((status) => {
-        setConnected(status === 'SUBSCRIBED')
+      .subscribe()
+
+    // Canal de presença — rastreia quem está online
+    const presenceChannel = supabase
+      .channel('online_users')
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState()
+        const ids = new Set(
+          Object.values(state).flat().map((p) => p.userId)
+        )
+        setOnlineUsers(ids)
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ userId })
+        }
       })
 
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      supabase.removeChannel(sharesChannel)
+      supabase.removeChannel(presenceChannel)
+    }
   }, [userId, refresh])
 
   function getConversation(friendId) {
@@ -99,5 +114,5 @@ export function useShares(userId) {
 
   const unreadCount = allShares.filter((s) => s.receiver_id === userId && !s.seen).length
 
-  return { allShares, unreadCount, connected, sendShare, getConversation, getUnreadFromFriend, markSeenFromFriend }
+  return { allShares, unreadCount, onlineUsers, sendShare, getConversation, getUnreadFromFriend, markSeenFromFriend }
 }
