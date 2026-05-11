@@ -28,7 +28,7 @@ export default function FriendsPage({
   friends, pendingReceived, pendingSent, loading,
   sendRequest, acceptRequest, rejectRequest, removeFriend,
   searchUsers, getFriendshipWith,
-  onBack,
+  onBack, onOpenChat,
 }) {
   const [tab,            setTab]            = useState('friends')
   const [searchQuery,    setSearchQuery]    = useState('')
@@ -178,6 +178,10 @@ export default function FriendsPage({
                         <p className="text-white font-medium text-sm truncate">{f.displayName || f.username}</p>
                         <p className="text-zinc-500 text-xs">@{f.username}</p>
                       </div>
+                      <button onClick={() => onOpenChat?.(null, f)}
+                        className="text-xs text-red-500 hover:text-white bg-red-600/10 hover:bg-red-600 border border-red-600/30 hover:border-red-600 px-3 py-1.5 rounded-lg transition-all shrink-0">
+                        Mensagem
+                      </button>
                       <button onClick={() => setSelectedFriend(f)}
                         className="text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-lg transition-all shrink-0">
                         Ver perfil

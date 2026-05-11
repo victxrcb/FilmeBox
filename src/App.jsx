@@ -8,9 +8,12 @@ import Login from './pages/Login'
 import Home from './pages/Home'
 import ProfilePage from './pages/ProfilePage'
 import FriendsPage from './pages/FriendsPage'
+import ChatPage from './pages/ChatPage'
 
 function AuthenticatedApp({ user, onLogout }) {
   const [page, setPage] = useState('home')
+  const [chatInitialMovie, setChatInitialMovie] = useState(null)
+  const [chatInitialFriend, setChatInitialFriend] = useState(null)
   const { movies, addMovie, updateMovie, deleteMovie, toggleFavorite } = useMovies(user.id)
   const { profile, saveProfile, updateEmail, verifyEmailOtp, resendEmailOtp } = useProfile(user.id)
   const {
@@ -20,6 +23,12 @@ function AuthenticatedApp({ user, onLogout }) {
   } = useFriends(user.id)
 
   const { allShares, unreadCount, sendShare, getConversation, getUnreadFromFriend, markSeenFromFriend } = useShares(user.id)
+
+  function handleOpenChat(movie = null, friend = null) {
+    setChatInitialMovie(movie)
+    setChatInitialFriend(friend)
+    setPage('chat')
+  }
 
   if (page === 'profile') {
     return (
@@ -50,6 +59,26 @@ function AuthenticatedApp({ user, onLogout }) {
         removeFriend={removeFriend}
         searchUsers={searchUsers}
         onBack={() => setPage('home')}
+        onOpenChat={handleOpenChat}
+      />
+    )
+  }
+
+  if (page === 'chat') {
+    return (
+      <ChatPage
+        userId={user.id}
+        friends={friends}
+        movies={movies}
+        allShares={allShares}
+        getConversation={getConversation}
+        getUnreadFromFriend={getUnreadFromFriend}
+        onSendShare={sendShare}
+        onMarkSeen={markSeenFromFriend}
+        onAddMovie={addMovie}
+        onBack={() => { setChatInitialMovie(null); setChatInitialFriend(null); setPage('home') }}
+        initialMovie={chatInitialMovie}
+        initialFriend={chatInitialFriend}
       />
     )
   }
@@ -66,6 +95,7 @@ function AuthenticatedApp({ user, onLogout }) {
       onLogout={onLogout}
       onOpenProfile={() => setPage('profile')}
       onOpenFriends={() => setPage('friends')}
+      onOpenChat={handleOpenChat}
       pendingFriendsCount={pendingReceived.length}
       friends={friends}
       allShares={allShares}

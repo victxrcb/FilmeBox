@@ -4,7 +4,6 @@ import MovieDetailModal from '../components/MovieDetailModal'
 import AddMovieModal from '../components/AddMovieModal'
 import IMDbSearchView from '../components/IMDbSearchView'
 import PopularMoviesView from '../components/PopularMoviesView'
-import ChatModal from '../components/ChatModal'
 
 const NAV_TABS = [
   { id: 'all',       label: 'Todos',      icon: '🎬' },
@@ -27,7 +26,7 @@ function Avatar({ profile, username, onClick }) {
       className="flex items-center gap-2.5 hover:bg-zinc-800/60 rounded-xl px-2 py-1.5 transition-all group"
       title="Ver perfil"
     >
-      <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-800 border border-zinc-700 group-hover:border-red-600/50 transition-colors shrink-0">
+      <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-800 border-2 border-zinc-700 group-hover:border-red-600 transition-all duration-200 group-hover:scale-110 shrink-0">
         {profile.photo ? (
           <img src={profile.photo} alt={display} className="w-full h-full object-cover" onError={(e) => e.target.style.display='none'}/>
         ) : (
@@ -38,7 +37,7 @@ function Avatar({ profile, username, onClick }) {
           </div>
         )}
       </div>
-      <span className="text-zinc-300 text-sm font-medium hidden md:block group-hover:text-white transition-colors">
+      <span className="text-zinc-300 text-sm font-medium hidden md:block group-hover:text-red-500 transition-colors duration-200">
         {display}
       </span>
     </button>
@@ -48,10 +47,9 @@ function Avatar({ profile, username, onClick }) {
 export default function Home({
   user, profile, movies,
   addMovie, updateMovie, deleteMovie, toggleFavorite,
-  onLogout, onOpenProfile, onOpenFriends, pendingFriendsCount = 0,
-  friends = [], allShares = [], onShareMovie,
-  unreadSharesCount = 0, onMarkSeenFromFriend,
-  getConversation, getUnreadFromFriend,
+  onLogout, onOpenProfile, onOpenFriends, onOpenChat,
+  pendingFriendsCount = 0,
+  unreadSharesCount = 0,
 }) {
   const [search, setSearch]               = useState('')
   const [tab, setTab]                     = useState('all')
@@ -59,19 +57,7 @@ export default function Home({
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [showAdd, setShowAdd]             = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [showChat, setShowChat]           = useState(false)
-  const [chatInitialMovie, setChatInitialMovie] = useState(null)
   const searchRef = useRef(null)
-
-  function handleOpenChat(movie = null) {
-    setChatInitialMovie(movie)
-    setShowChat(true)
-  }
-
-  function handleCloseChat() {
-    setShowChat(false)
-    setChatInitialMovie(null)
-  }
 
   const counts = useMemo(() => ({
     all:       movies.length,
@@ -175,23 +161,27 @@ export default function Home({
           <div className="ml-auto flex items-center gap-1 shrink-0">
             <Avatar profile={profile} username={user.username} onClick={onOpenProfile} />
             <button onClick={onOpenFriends}
-              className="relative p-2 text-zinc-600 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+              className="relative p-2 rounded-lg transition-all hover:bg-zinc-800/60 group"
               title="Amigos">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
-              </svg>
+              <img
+                src="/amigos.png"
+                alt="Amigos"
+                className="w-5 h-5 icon-img group-hover:scale-110"
+              />
               {pendingFriendsCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                   {pendingFriendsCount > 9 ? '9+' : pendingFriendsCount}
                 </span>
               )}
             </button>
-            <button onClick={() => handleOpenChat()}
-              className="relative p-2 text-zinc-600 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
-              title="Filmes recebidos">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
-              </svg>
+            <button onClick={() => onOpenChat?.()}
+              className="relative p-2 rounded-lg transition-all hover:bg-zinc-800/60 group"
+              title="Mensagens">
+              <img
+                src="/icone%20chat.png"
+                alt="Mensagens"
+                className="w-5 h-5 icon-img group-hover:scale-110"
+              />
               {unreadSharesCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                   {unreadSharesCount > 9 ? '9+' : unreadSharesCount}
@@ -199,11 +189,13 @@ export default function Home({
               )}
             </button>
             <button onClick={onLogout}
-              className="p-2 text-zinc-600 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+              className="p-2 rounded-lg transition-all hover:bg-zinc-800/60 group"
               title="Sair">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
-              </svg>
+              <img
+                src="/LOGOUT.png"
+                alt="Sair"
+                className="w-5 h-5 icon-img group-hover:scale-110"
+              />
             </button>
           </div>
         </div>
@@ -326,23 +318,7 @@ export default function Home({
           onToggleFavorite={toggleFavorite}
           onUpdate={handleUpdateMovie}
           onDelete={(id) => { deleteMovie(id); setSelectedMovie(null) }}
-          onOpenChat={handleOpenChat}
-        />
-      )}
-
-      {showChat && (
-        <ChatModal
-          userId={user.id}
-          friends={friends}
-          movies={movies}
-          allShares={allShares}
-          getConversation={getConversation}
-          getUnreadFromFriend={getUnreadFromFriend}
-          onSendShare={onShareMovie}
-          onMarkSeen={onMarkSeenFromFriend}
-          onAddMovie={addMovie}
-          onClose={handleCloseChat}
-          initialMovie={chatInitialMovie}
+          onOpenChat={onOpenChat}
         />
       )}
     </div>
