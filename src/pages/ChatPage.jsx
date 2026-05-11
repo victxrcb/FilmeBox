@@ -92,6 +92,7 @@ export default function ChatPage({
   onBack,
   initialMovie = null,
   initialFriend = null,
+  connected = false,
 }) {
   const [selectedFriend, setSelectedFriend] = useState(initialFriend)
   const [pendingMovie, setPendingMovie]     = useState(initialMovie)
@@ -148,13 +149,19 @@ export default function ChatPage({
             </svg>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <div className="w-7 h-7 bg-red-600 rounded-md flex items-center justify-center shadow-md shadow-red-900/60">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
                 <path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>
               </svg>
             </div>
             <h1 className="text-white font-bold text-base">Mensagens</h1>
+            <div className="ml-auto flex items-center gap-1.5 pr-2">
+              <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-zinc-600'}`}/>
+              <span className={`text-[10px] ${connected ? 'text-green-500/80' : 'text-zinc-600'}`}>
+                {connected ? 'ao vivo' : 'conectando…'}
+              </span>
+            </div>
           </div>
         </div>
       </header>

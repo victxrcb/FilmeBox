@@ -22,7 +22,7 @@ function AuthenticatedApp({ user, onLogout }) {
     searchUsers,
   } = useFriends(user.id)
 
-  const { allShares, unreadCount, sendShare, getConversation, getUnreadFromFriend, markSeenFromFriend } = useShares(user.id)
+  const { allShares, unreadCount, connected, sendShare, getConversation, getUnreadFromFriend, markSeenFromFriend } = useShares(user.id)
 
   function handleOpenChat(movie = null, friend = null) {
     setChatInitialMovie(movie)
@@ -79,6 +79,7 @@ function AuthenticatedApp({ user, onLogout }) {
         onBack={() => { setChatInitialMovie(null); setChatInitialFriend(null); setPage('home') }}
         initialMovie={chatInitialMovie}
         initialFriend={chatInitialFriend}
+        connected={connected}
       />
     )
   }
